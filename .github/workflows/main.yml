@@ -1,39 +1,34 @@
 name: Deploy to Azure Storage
 
-# When to run this workflow
 on:
   push:
     branches:
-      - main # Runs when you push to main branch
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Download your code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Login to Azure
-      - name: Login to Azure
+      - name: Azure CLI Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # Step 3: Upload files to Azure Storage
       - name: Upload to Azure Storage
-        uses: azure/CLI@v1
-        with:
-          inlineScript: |
-            az storage blob upload-batch \
-              --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
-              --account-key ${{ secrets.AZURE_STORAGE_KEY }} \
-              --destination '$web' \
-              --source ./docs \
-              --overwrite true
+        run: |
+          az storage blob upload-batch \
+            --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT }} \
+            --account-key "${{ secrets.AZURE_STORAGE_KEY }}" \
+            --destination '$web' \
+            --source ./docs \
+            --overwrite true
 
-      # Step 4: Logout from Azure
       - name: Logout from Azure
-        run: az logout
+        run: |
+          az logout
+        if: always()
